@@ -3,7 +3,7 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using UnityEngine;
 
-namespace CasualtiesOnOurWayToParadise;
+namespace CasualtiesNewAscent;
 
 [HarmonyPatch(typeof(Body), nameof(Body.Jump))]
 public static class BodyPatches

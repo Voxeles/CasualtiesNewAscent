@@ -1,7 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 
-namespace CasualtiesOnOurWayToParadise;
+namespace CasualtiesNewAscent;
 
 
 public class AscentTimer : MonoBehaviour
@@ -31,7 +31,7 @@ public class AscentTimer : MonoBehaviour
 
     private void Start()
     {
-        _timeLeft = 10f * 60f;
+        _timeLeft = 12f * 60f;
     }
 
     private void Update()
@@ -46,7 +46,7 @@ public class AscentTimer : MonoBehaviour
         if (world.generatingWorld || world.instantiatingWorld || world.doingRegen)
             return;
 
-        if (world.cutsceneActive)
+        if (world.cutsceneActive || !Plugin.CheckIfNewLayer(world.biomeDepth))
         {
             Destroy(this);
             return;

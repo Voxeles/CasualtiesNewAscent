@@ -2,14 +2,14 @@
 using System.Collections;
 using System.IO;
 using System.IO.Compression;
+using System.Threading.Tasks;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 using UnityEngine;
 using UnityEngine.Networking;
-using CompressionLevel = System.IO.Compression.CompressionLevel;
 
-namespace CasualtiesOnOurWayToParadise;
+namespace CasualtiesNewAscent;
 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 public class Plugin : BaseUnityPlugin
@@ -22,7 +22,8 @@ public class Plugin : BaseUnityPlugin
 	private readonly Harmony _harmony = new(ModGuid);
 	public static Plugin Instance { get; private set; } = null!;
 
-	public static AudioClip MusicClip;
+	public static AudioClip MusicIntro;
+	public static AudioClip MusicLoop;
 
 	public void Awake()
 	{
@@ -38,38 +39,41 @@ public class Plugin : BaseUnityPlugin
 
 	public static bool CheckIfAscent(int biomeDepth)
 	{
-		return biomeDepth is 10 or 13 or 14 or 15;
+		return biomeDepth is 10 or 13 or 14 or 15 or 16;
 	}
 
 	public static bool CheckIfLastLayer(int biomeDepth)
 	{
-		return biomeDepth is 10 or 15;
+		return biomeDepth is 10 or 16;
 	}
 
 	public static bool CheckIfNewLayer(int biomeDepth)
 	{
-		return biomeDepth is 13 or 14 or 15;
+		return biomeDepth is 13 or 14 or 15 or 16;
 	}
 
 	private static IEnumerator LoadAudio()
 	{
-		using var stream = typeof(Plugin).Assembly.GetManifestResourceStream($"{ModName}.assets.mus.bin");
+		yield return LoadAudioClip("mus-intro.ogg", clip => MusicIntro = clip);
+		yield return LoadAudioClip("mus-loop.ogg", clip => MusicLoop = clip);
+	}
+
+	private static IEnumerator LoadAudioClip(string assetName, Action<AudioClip> onLoaded)
+	{
+		using var stream = typeof(Plugin).Assembly.GetManifestResourceStream($"{ModName}.assets.{assetName}");
 		if (stream == null)
 		{
 			Logger.LogError($"Embedded audio missing!");
 			yield break;
 		}
 
-		string path = Path.Combine(Path.GetTempPath(), $"{ModName}-music.ogg");
+		string path = Path.Combine(Path.GetTempPath(), $"{ModName}-{assetName}");
 		try
 		{
 			using (var output = new FileStream(path, FileMode.CreateNew, FileAccess.Write))
-			using (var gz = new GZipStream(stream, CompressionMode.Decompress))
-				gz.CopyTo(output);
+				stream.CopyTo(output);
 
-			var p = new Uri(path).AbsoluteUri;
-
-			using var request = UnityWebRequestMultimedia.GetAudioClip(p, AudioType.OGGVORBIS);
+			using var request = UnityWebRequestMultimedia.GetAudioClip(new Uri(path).AbsoluteUri, AudioType.OGGVORBIS);
 			yield return request.SendWebRequest();
 
 			if (request.result != UnityWebRequest.Result.Success)
@@ -78,7 +82,8 @@ public class Plugin : BaseUnityPlugin
 				yield break;
 			}
 
-			MusicClip = DownloadHandlerAudioClip.GetContent(request);
+			AudioClip clip = DownloadHandlerAudioClip.GetContent(request);
+			onLoaded(clip);
 		}
 		finally
 		{
@@ -92,25 +97,4 @@ public class Plugin : BaseUnityPlugin
 			}
 		}
 	}
-
-	/*
-	private static void CompressAudio()
-	{
-		using var stream = typeof(Plugin).Assembly.GetManifestResourceStream($"{ModName}.assets.ext.ogg");
-		if (stream == null)
-		{
-			Logger.LogError($"Embedded audio missing!");
-			return;
-		}
-
-		string path = Path.Combine(Path.GetTempPath(), $"{ModName}-music-compressed.bin");
-		using (var output = new FileStream(path, FileMode.Create, FileAccess.ReadWrite))
-		using (var gz = new GZipStream(output, CompressionLevel.Optimal))
-		{
-			stream.CopyTo(gz);
-		}
-
-		Plugin.Logger.LogMessage("Done.");
-	}
-	*/
 }

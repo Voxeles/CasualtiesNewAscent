@@ -6,45 +6,58 @@ using HarmonyLib;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace CasualtiesOnOurWayToParadise;
+namespace CasualtiesNewAscent;
 
 [HarmonyPatch(typeof(WorldGeneration), nameof(WorldGeneration.Awake))]
 public static class NewBiomesSetup
 {
+    // biomeProfiles
+    // biomeTitles (size is 13 for some reason? The rest are 12), automatically filled
+    // temperatureCurves
+    // backgroundDrones
+    // biomeProfileNoise -- based on biomeProfiles
+    // layerGenerationImages
+    // layerGenerationCharColors
+
     public static void Postfix(WorldGeneration __instance)
     {
-        // Just resize it, new strings handled by locale
-        Array.Resize(ref __instance.biomeTitles, 16);
+        // New strings generated automatically by WorldGeneration.Start
+        Array.Resize(ref __instance.biomeTitles, 17);
 
-        Array.Resize(ref __instance.temperatureCurves, 16);
+        Array.Resize(ref __instance.temperatureCurves, 17);
         __instance.temperatureCurves[12] = __instance.temperatureCurves[11];
         __instance.temperatureCurves[13] = __instance.temperatureCurves[10];
         __instance.temperatureCurves[14] = __instance.temperatureCurves[10];
         __instance.temperatureCurves[15] = __instance.temperatureCurves[10];
+        __instance.temperatureCurves[16] = __instance.temperatureCurves[10];
 
-        Array.Resize(ref __instance.backgroundDrones, 16);
+        Array.Resize(ref __instance.backgroundDrones, 17);
         __instance.backgroundDrones[12] = __instance.backgroundDrones[11];
         __instance.backgroundDrones[13] = new AudioClip();
         __instance.backgroundDrones[14] = new AudioClip();
         __instance.backgroundDrones[15] = new AudioClip();
+        __instance.backgroundDrones[16] = new AudioClip();
 
-        Array.Resize(ref __instance.biomeProfiles, 16);
+        Array.Resize(ref __instance.biomeProfiles, 17);
         __instance.biomeProfiles[12] = __instance.biomeProfiles[11];
         __instance.biomeProfiles[13] = __instance.biomeProfiles[10];
         __instance.biomeProfiles[14] = __instance.biomeProfiles[10];
         __instance.biomeProfiles[15] = __instance.biomeProfiles[10];
+        __instance.biomeProfiles[16] = __instance.biomeProfiles[10];
 
-        Array.Resize(ref __instance.layerGenerationImages, 16);
+        Array.Resize(ref __instance.layerGenerationImages, 17);
         __instance.layerGenerationImages[12] = __instance.layerGenerationImages[11];
-        __instance.layerGenerationImages[13] = __instance.layerGenerationImages[10];
-        __instance.layerGenerationImages[14] = __instance.layerGenerationImages[10];
-        __instance.layerGenerationImages[15] = __instance.layerGenerationImages[10];
+        __instance.layerGenerationImages[13] = __instance.layerGenerationImages[8];
+        __instance.layerGenerationImages[14] = __instance.layerGenerationImages[5];
+        __instance.layerGenerationImages[15] = __instance.layerGenerationImages[2];
+        __instance.layerGenerationImages[16] = __instance.layerGenerationImages[10];
 
-        Array.Resize(ref __instance.layerGenerationCharColors, 16);
+        Array.Resize(ref __instance.layerGenerationCharColors, 17);
         __instance.layerGenerationCharColors[12] = __instance.layerGenerationCharColors[11];
-        __instance.layerGenerationCharColors[13] = __instance.layerGenerationCharColors[10];
-        __instance.layerGenerationCharColors[14] = __instance.layerGenerationCharColors[10];
-        __instance.layerGenerationCharColors[15] = __instance.layerGenerationCharColors[10];
+        __instance.layerGenerationCharColors[13] = __instance.layerGenerationCharColors[8];
+        __instance.layerGenerationCharColors[14] = __instance.layerGenerationCharColors[5];
+        __instance.layerGenerationCharColors[15] = __instance.layerGenerationCharColors[2];
+        __instance.layerGenerationCharColors[16] = __instance.layerGenerationCharColors[10];
     }
 }
 
@@ -64,14 +77,6 @@ public static class NewRegenAfterCargoDrillPodUsed
         return false;
     }
 
-    // biomeProfiles
-    // biomeTitles (13, rest 12)
-    // temperatureCurves
-    // backgroundDrones
-    // biomeProfileNoise -- based on biomeProfiles
-    // layerGenerationImages
-    // layerGenerationCharColors
-
     private static IEnumerator RegenerateWorldNew(WorldGeneration inst)
     {
         inst.doingRegen = true;
@@ -82,13 +87,14 @@ public static class NewRegenAfterCargoDrillPodUsed
         if (inst.biomeDepth < 13)
         {
             inst.biomeDepth = 13;
-            inst.totalTraveled = 0;
+            inst.totalTraveled = (int) (inst.height * 0.3f * 3.5f);
             inst.lootRarityMultiplier = 0;
             inst.trapRarityMultiplier = 1;
         }
-        else if (inst.biomeDepth < 15)
+        else if (inst.biomeDepth < 16)
         {
             inst.biomeDepth++;
+            inst.totalTraveled -= (int) (inst.height * 0.3f);
             inst.lootRarityMultiplier *= WorldGeneration.GetRunSettingFloat("lootmultiplier");
             inst.trapRarityMultiplier += WorldGeneration.GetRunSettingFloat("trapincrease");
         }
@@ -152,6 +158,37 @@ public static class HandleAscentEndLayer
                 new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Plugin), nameof(Plugin.CheckIfLastLayer))),
                 new CodeInstruction(OpCodes.Ldc_I4_1))
             .InstructionEnumeration();
+    }
+
+    [HarmonyTranspiler]
+    public static IEnumerable<CodeInstruction> ChangeEndingDepth(IEnumerable<CodeInstruction> instructions)
+    {
+        return new CodeMatcher(instructions)
+            .MatchForward(false,
+                new CodeMatch(OpCodes.Ldarg_0),
+                new CodeMatch(OpCodes.Call, AccessTools.PropertyGetter(typeof(WorldGeneration), nameof(WorldGeneration.body))),
+                new CodeMatch(OpCodes.Callvirt),
+                new CodeMatch(OpCodes.Callvirt),
+                new CodeMatch(OpCodes.Ldfld), // body.transform.position.y
+                new CodeMatch(OpCodes.Ldarg_0),
+                new CodeMatch(OpCodes.Call, AccessTools.PropertyGetter(typeof(WorldGeneration), nameof(WorldGeneration.halfHeight))),
+                new CodeMatch(OpCodes.Conv_R_Un),
+                new CodeMatch(OpCodes.Conv_R4),
+                new CodeMatch(OpCodes.Ldc_R4, 5f),
+                new CodeMatch(OpCodes.Sub),
+                new CodeMatch(OpCodes.Cgt),
+                new CodeMatch(OpCodes.Brfalse))
+            .ThrowIfInvalid($"{nameof(HandleAscentEndLayer)}.{nameof(ChangeEndingDepth)} - could not find a match!")
+            .Advance(5)
+            .RemoveInstructions(6)
+            .Insert(
+                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(HandleAscentEndLayer), nameof(NewAscentEndingDepth))))
+            .InstructionEnumeration();
+    }
+
+    private static float NewAscentEndingDepth()
+    {
+        return WorldGeneration.world.biomeDepth == 16 ? 0f : WorldGeneration.world.halfHeight - 5f;
     }
 
     public static void Postfix()
@@ -303,8 +340,18 @@ public static class FinishWorldGenerationPatch
         MusicManager.main.cutsceneVolMult = 1f;
         if (!MusicPatches.Playing)
             MusicManager.main.StartCoroutine(MusicManager.main.AscentMusic());
-        if (ArrowGuideTriple.Child1 == null)
-            ArrowGuideTriple.MakeTriple();
+        if (!Plugin.CheckIfLastLayer(inst.biomeDepth))
+        {
+            if (ArrowGuideTriple.Child1 == null)
+                ArrowGuideTriple.MakeTriple();
+        }
+        else
+        {
+            // Last layer doesn't have triple arrows
+            if (ArrowGuideTriple.Child1 != null)
+                ArrowGuideTriple.DestroyTriple();
+            WorldGeneration.world.gameObject.AddComponent<SkyBg>();
+        }
         if (AscentTimer.Instance == null)
             WorldGeneration.world.gameObject.AddComponent<AscentTimer>();
     }
@@ -343,6 +390,8 @@ public static class AddNewBackgrounds
             NewWorldgen.CreateBackground2(inst);
         else if (inst.biomeDepth == 15)
             NewWorldgen.CreateBackground1(inst);
+        else if (inst.biomeDepth == 16)
+            NewWorldgen.CreateBackground0(inst);
     }
 }
 
@@ -436,6 +485,22 @@ public static class AddNewTerrain
             NewWorldgen.EntitiesBiome1(inst);
             yield return null;
             NewWorldgen.EntitiesBiome0(inst);
+            yield return null;
+        }
+        else if (inst.biomeDepth == 16)
+        {
+            yield return NewWorldgen.GenerateBiome10(inst);
+
+            inst.UpdateWorld();
+            yield return null;
+
+            NewWorldgen.FinishBiome10(inst);
+            yield return null;
+
+            inst.UpdateWorld();
+            yield return null;
+
+            NewWorldgen.EntitiesBiome10(inst);
             yield return null;
         }
     }

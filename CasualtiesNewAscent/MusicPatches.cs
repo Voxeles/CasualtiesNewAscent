@@ -2,7 +2,7 @@
 using HarmonyLib;
 using UnityEngine;
 
-namespace CasualtiesOnOurWayToParadise;
+namespace CasualtiesNewAscent;
 
 [HarmonyPatch(typeof(MusicManager), nameof(MusicManager.AscentMusic))]
 public static class MusicPatches
@@ -18,6 +18,9 @@ public static class MusicPatches
 
     private static IEnumerator NewMusicCoro(MusicManager inst)
     {
+        if (Plugin.MusicIntro == null || Plugin.MusicLoop == null || !WorldGeneration.world)
+            yield break;
+
         Playing = true;
         inst.source.Stop();
 
@@ -28,11 +31,45 @@ public static class MusicPatches
         source.loop = false;
         source.playOnAwake = false;
         source.volume = 100f;
-        source.clip = Plugin.MusicClip;
-        source.PlayDelayed(5f);
+        source.clip = Plugin.MusicIntro;
+
         while (true)
         {
-            if (Plugin.CheckIfNewLayer(WorldGeneration.world.biomeDepth) && !WorldGeneration.world.cutsceneActive)
+            if (WorldGeneration.world.generatingWorld || WorldGeneration.world.instantiatingWorld)
+                yield return null;
+            else
+                break;
+
+            if (!WorldGeneration.world)
+            {
+                Object.Destroy(source);
+                Playing = false;
+                yield break;
+            }
+        }
+
+        source.PlayDelayed(1f);
+        while (true)
+        {
+            if (source.isPlaying && WorldGeneration.world && Plugin.CheckIfNewLayer(WorldGeneration.world.biomeDepth) && !WorldGeneration.world.cutsceneActive)
+                yield return null;
+            else
+                break;
+        }
+
+        if (!WorldGeneration.world && !Plugin.CheckIfNewLayer(WorldGeneration.world.biomeDepth) && WorldGeneration.world.cutsceneActive)
+        {
+            Object.Destroy(source);
+            Playing = false;
+            yield break;
+        }
+
+        source.clip = Plugin.MusicLoop;
+        source.loop = true;
+        source.Play();
+        while (true)
+        {
+            if (WorldGeneration.world && Plugin.CheckIfNewLayer(WorldGeneration.world.biomeDepth) && !WorldGeneration.world.cutsceneActive)
                 yield return null;
             else
                 break;

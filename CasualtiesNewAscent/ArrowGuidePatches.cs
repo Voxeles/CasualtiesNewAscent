@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using UnityEngine;
 
-namespace CasualtiesOnOurWayToParadise;
+namespace CasualtiesNewAscent;
 
 [HarmonyPatch(typeof(ArrowGuide), nameof(ArrowGuide.Update))]
 public static class ArrowGuidePatches
@@ -13,6 +13,8 @@ public static class ArrowGuidePatches
 
         Vector3 origPos = __instance.origPos;
         origPos.y *= -1f;
+        if (Plugin.CheckIfLastLayer(WorldGeneration.world.biomeDepth))
+            origPos.y = 0f;
         __instance.transform.position = origPos + Vector3.up * Mathf.Sin(Time.time);
         __instance.spriteRenderer.flipY = true;
         __instance.spriteRenderer.enabled = true;

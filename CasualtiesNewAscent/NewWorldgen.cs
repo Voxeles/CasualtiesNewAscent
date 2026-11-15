@@ -6,7 +6,7 @@ using UnityEngine.Events;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
-namespace CasualtiesOnOurWayToParadise;
+namespace CasualtiesNewAscent;
 
 public static class NewWorldgen
 {
@@ -87,11 +87,31 @@ public static class NewWorldgen
                 }
             }
         }
-        for (int index = 0; (double) index < (double) (inst.chunkWidth * inst.chunkHeight) * 0.4f; ++index)
+
+        for (var i = 0; i < (double)(inst.chunkWidth * inst.chunkHeight) * 0.25f; ++i)
         {
-            Vector2 vector2 = (Vector2) new Vector3(UnityEngine.Random.Range((float) -inst.halfWidth, (float) inst.halfWidth), UnityEngine.Random.Range((float) 0, (float) inst.halfHeight));
-            ((GameObject) UnityEngine.Object.Instantiate(UnityEngine.Resources.Load("Special/wallholes"), (Vector3) vector2, Quaternion.Euler(new Vector3(0.0f, 0.0f, UnityEngine.Random.value * 360f)), inst.GetClosestChunk(inst.WorldToBlockPos(vector2)).transform)).GetComponent<AudioSource>().pitch = UnityEngine.Random.Range(0.8f, 1.2f);
+            var vector2 = (Vector2)new Vector3(Random.Range(-inst.halfWidth, inst.halfWidth), Random.Range(0, inst.halfHeight));
+            ((GameObject)Object.Instantiate(Resources.Load("Special/wallholes"), vector2, Quaternion.Euler(new Vector3(0.0f, 0.0f, Random.value * 360f)), inst.GetClosestChunk(inst.WorldToBlockPos(vector2)).transform)).GetComponent<AudioSource>().pitch = Random.Range(0.8f, 1.2f);
         }
+    }
+
+    public static void CreateBackground0(WorldGeneration inst)
+    {
+        var chunks = inst.chunks;
+        int width = chunks.GetUpperBound(0);
+        int height = chunks.GetUpperBound(1) / 2;
+        for (int x = chunks.GetLowerBound(0); x <= width; ++x)
+        {
+            for (int y = chunks.GetLowerBound(1); y <= height; ++y)
+                inst.CreateBackground("crimsonback", chunks[x, y]);
+        }
+
+        for (var i = 0; i < (double)(inst.chunkWidth * inst.chunkHeight) * 0.4f; ++i)
+        {
+            var vector2 = (Vector2)new Vector3(Random.Range(-inst.halfWidth, inst.halfWidth), Random.Range(0, inst.halfHeight / 2f));
+            ((GameObject)Object.Instantiate(Resources.Load("Special/wallholes"), vector2, Quaternion.Euler(new Vector3(0.0f, 0.0f, Random.value * 360f)), inst.GetClosestChunk(inst.WorldToBlockPos(vector2)).transform)).GetComponent<AudioSource>().pitch = Random.Range(0.8f, 1.2f);
+        }
+
     }
 
     public static IEnumerator GenerateBiome8(WorldGeneration inst)
@@ -729,7 +749,7 @@ public static class NewWorldgen
     public static void EntitiesBiome4(WorldGeneration inst)
     {
         float num11 = inst.chunkWidth * inst.chunkHeight / 3f * Random.Range(4f, 5f);
-        for (var index = 0; index < (double)num11; ++index)
+        for (var i = 0; i < num11; ++i)
         {
             var vector2 = new Vector2(Random.Range(-inst.halfWidth, inst.halfWidth), Random.Range(-inst.halfHeight / 3f, inst.halfHeight / 3f));
             if (!(bool)(Object)Physics2D.OverlapPoint(vector2, LayerMask.GetMask("Ground")))
@@ -737,7 +757,7 @@ public static class NewWorldgen
                 RaycastHit2D raycastHit2D3 = Physics2D.Raycast(vector2, Vector2.up, WorldGeneration.CHUNKSIZE * 4, LayerMask.GetMask("Ground"));
                 RaycastHit2D raycastHit2D4 = Physics2D.Raycast(vector2, Vector2.down, WorldGeneration.CHUNKSIZE * 4, LayerMask.GetMask("Ground"));
                 Vector2Int blockPos = inst.WorldToBlockPos(raycastHit2D3.point - Vector2.up * 0.5f);
-                if (raycastHit2D3 && raycastHit2D4 && raycastHit2D4.point.y < inst.halfHeight - 5.0)
+                if (raycastHit2D3 && raycastHit2D3.point.y < inst.halfHeight / 3f && raycastHit2D4 && raycastHit2D4.point.y > -inst.halfHeight / 3f && raycastHit2D4.point.y < inst.halfHeight / 3f - 5f)
                 {
                     Color color = Color.Lerp(Color.gray, Color.white, Random.value);
                     var gameObject3 = (GameObject)Object.Instantiate(Resources.Load("Special/sandvinehook"), inst.BlockToWorldPos(blockPos), Quaternion.identity);
@@ -861,7 +881,7 @@ public static class NewWorldgen
                 RaycastHit2D raycastHit2D1 = Physics2D.Raycast(vector2, Vector2.up, WorldGeneration.CHUNKSIZE * 4, LayerMask.GetMask("Ground"));
                 RaycastHit2D raycastHit2D2 = Physics2D.Raycast(vector2, Vector2.down, WorldGeneration.CHUNKSIZE * 4, LayerMask.GetMask("Ground"));
                 Vector2Int blockPos = inst.WorldToBlockPos(raycastHit2D1.point - Vector2.up * 0.5f);
-                if (raycastHit2D1 && raycastHit2D2 && raycastHit2D2.point.y < inst.halfHeight - 5.0)
+                if (raycastHit2D1 && raycastHit2D2 && raycastHit2D2.point.y > inst.halfHeight / 3f && raycastHit2D2.point.y < inst.halfHeight - 5.0)
                 {
                     Color color = Color.Lerp(Color.gray, Color.white, Random.value);
                     var gameObject1 = (GameObject)Object.Instantiate(Resources.Load("Special/sandvinehook"), inst.BlockToWorldPos(blockPos), Quaternion.identity);
@@ -1245,7 +1265,7 @@ public static class NewWorldgen
                 RaycastHit2D raycastHit2D1 = Physics2D.Raycast(vector2, Vector2.up, WorldGeneration.CHUNKSIZE * 4, LayerMask.GetMask("Ground"));
                 RaycastHit2D raycastHit2D2 = Physics2D.Raycast(vector2, Vector2.down, WorldGeneration.CHUNKSIZE * 4, LayerMask.GetMask("Ground"));
                 Vector2Int blockPos = inst.WorldToBlockPos(raycastHit2D1.point - Vector2.up * 0.5f);
-                if (raycastHit2D1 && raycastHit2D2 && raycastHit2D2.point.y < inst.halfHeight - 5.0)
+                if (raycastHit2D1 && raycastHit2D1.point.y < -inst.halfHeight / 3f && raycastHit2D2)
                 {
                     Color color = Color.Lerp(Color.gray, Color.white, Random.value);
                     var gameObject1 = (GameObject)Object.Instantiate(Resources.Load("Special/sandvinehook"), inst.BlockToWorldPos(blockPos), Quaternion.identity);
@@ -1418,31 +1438,124 @@ public static class NewWorldgen
         inst.DistributeEntities((GameObject)Resources.Load("leadbush"), 2f, 2.2f, 0.6f, 6f, 0.1f, randomFlip: true, checkFunc: pos => inst.isSoil(pos));
     }
 
+    public static IEnumerator GenerateBiome10(WorldGeneration inst)
+    {
+        var caveNoise = new FastNoiseLite(UnityEngine.Random.Range(0, int.MaxValue));
+        caveNoise.SetFrequency(0.02f);
+        caveNoise.SetFractalType(FastNoiseLite.FractalType.FBm);
+        caveNoise.SetFractalOctaves(4);
+        caveNoise.SetFractalLacunarity(1.7f);
+        caveNoise.SetFractalGain(0.51f);
+        caveNoise.SetFractalWeightedStrength(0.01f);
+        var toxicNoise = new FastNoiseLite(UnityEngine.Random.Range(0, int.MaxValue));
+        toxicNoise.SetFrequency(0.02f);
+        toxicNoise.SetDomainWarpAmp(60.5f);
+        toxicNoise.SetDomainWarpType(FastNoiseLite.DomainWarpType.OpenSimplex2);
+        for (var i1 = 0; i1 < inst.width; ++i1)
+        {
+            for (var y = 0; y < inst.height / 2f; ++y)
+            {
+                float noise4 = caveNoise.GetNoise(i1, y);
+                var noise5 = (double)toxicNoise.GetNoise(i1, y);
+                if (noise4 > 0.25)
+                    inst.worldBlocks[i1, y] = noise4 > 0.3499999940395355 ? (ushort)1 : (ushort)40;
+                if (noise5 > 0.8799999952316284)
+                    inst.worldBlocks[i1, y] = 41;
+                if (y < 4 && (y < 3 || Random.value > 0.800000011920929))
+                    inst.worldBlocks[i1, y] = 40;
+            }
+
+            if (Time.unscaledTimeAsDouble - tileTimer > 1.0)
+            {
+                yield return null;
+                tileTimer = Time.unscaledTimeAsDouble;
+            }
+        }
+    }
+
+    public static void FinishBiome10(WorldGeneration inst)
+    {
+        PlaceLiquids(inst, 3, 100f, (byte) 7, 48);
+        PlaceLiquids(inst, 3, 64f, (byte) 1, 32);
+    }
+
+    public static void EntitiesBiome10(WorldGeneration inst)
+    {
+        DistributeEntities(inst, 3, (GameObject)Resources.Load("mushlight"), 24f, 25f, 1.1f, 15f, 0.15f, randomFlip: true, checkFunc: pos => inst.GetBlock(pos) == 41);
+        DistributeEntities(inst, 3, (GameObject)Resources.Load("crimsonbush"), 6f, 7f, 2f, 20f, randomFlip: true, checkFunc: pos => inst.GetBlock(pos) == 40 || inst.isSoil(pos));
+        DistributeEntities(inst, 3, (GameObject)Resources.Load("crimsontree"), 3f, 4f, 2.5f, 20f, 0.375f, randomFlip: true, checkFunc: pos => inst.GetBlock(pos) == 40 || inst.isSoil(pos));
+        DistributeEntities(inst, 3, (GameObject)Resources.Load("pussack"), 0.9f * inst.totalLootRarity, 0.9f * inst.totalLootRarity, 1f, 5f, 0.25f, randomFlip: true, checkFunc: pos => inst.GetBlock(pos) == 40 || inst.isSoil(pos));
+        DistributeEntities(inst, 3, (GameObject)Resources.Load("stoneplant"), 1.5f, 1.6f, 1.9f, 10f, 0.1f, randomFlip: true);
+        DistributeEntities(inst, 3, (GameObject)Resources.Load("ceilingrye"), 1.4f, 1.5f, 1f, 10f, 0.5f, randomFlip: true, dir: Vector2.up);
+        DistributeEntities(inst, 3, (GameObject)Resources.Load("leadbush"), 3.5f, 3.6f, 0.6f, 6f, 0.1f, randomFlip: true);
+        DistributeEntities(inst, 3, (GameObject)Resources.Load("brownshroom"), 4f, 5f, 0.9f, 10f, randomFlip: true);
+        DistributeEntities(inst, 3, (GameObject)Resources.Load("pop"), 1f, 1f, 2f, 20f, 0.2f, randomFlip: true, checkFunc: pos => inst.GetBlock(pos) == 40 || inst.isSoil(pos));
+        float num21 = inst.chunkWidth * inst.chunkHeight / 2f * Random.Range(1.5f, 1.5f);
+        for (var index = 0; index < num21; ++index)
+        {
+            var vector2 = new Vector2(Random.Range(-inst.halfWidth, inst.halfWidth), Random.Range(-inst.halfHeight, 0));
+            if (!(bool)(Object)Physics2D.OverlapPoint(vector2, LayerMask.GetMask("Ground")))
+            {
+                RaycastHit2D raycastHit2D7 = Physics2D.Raycast(vector2, Vector2.up, WorldGeneration.CHUNKSIZE * 4, LayerMask.GetMask("Ground"));
+                RaycastHit2D raycastHit2D8 = Physics2D.Raycast(vector2, Vector2.down, WorldGeneration.CHUNKSIZE * 4, LayerMask.GetMask("Ground"));
+                if (raycastHit2D7 && raycastHit2D8 && raycastHit2D8.point.y < 0f - 5.0f)
+                {
+                    Color color = Color.Lerp(Color.gray, Color.white, Random.value);
+                    var gameObject7 = (GameObject)Object.Instantiate(Resources.Load("Special/veintop"), raycastHit2D7.point + Vector2.down * 0.5f, Quaternion.identity);
+                    var gameObject8 = (GameObject)Object.Instantiate(Resources.Load("Special/veinloop"), (raycastHit2D7.point + raycastHit2D8.point) * 0.5f, Quaternion.identity);
+                    var gameObject9 = (GameObject)Object.Instantiate(Resources.Load("Special/veinbottom"), raycastHit2D8.point + Vector2.up * 0.5f, Quaternion.identity);
+                    gameObject8.GetComponent<SpriteRenderer>().size = new Vector2(2f, Mathf.Abs(raycastHit2D7.point.y - raycastHit2D8.point.y) - 1f);
+                    gameObject8.GetComponent<SpriteRenderer>().color = color;
+                    gameObject9.GetComponent<SpriteRenderer>().color = color;
+                    gameObject7.GetComponent<SpriteRenderer>().color = color;
+                    float x = Random.Range(0.5f, 1f);
+                    gameObject7.transform.localScale = new Vector3(x, 1f);
+                    gameObject8.transform.localScale = new Vector3(x, 1f);
+                    gameObject9.transform.localScale = new Vector3(x, 1f);
+                    var num22 = (float)((1.0 - x) * 10.0);
+                    var component = gameObject8.GetComponent<Climbable>();
+                    component.points.Add(raycastHit2D8.point);
+                    component.points.Add(raycastHit2D7.point);
+                    component.downwardsVelocity = num22;
+                }
+            }
+        }
+    }
+
     public static void PlaceLiquids(WorldGeneration inst, int band, float perChunk, byte type, int maxFill)
     {
         int minY;
         int maxY;
+        float chanceDiv;
         switch (band)
         {
             case 0:
                 minY = 0;
                 maxY = (int) (inst.height * (1f / 3f));
+                chanceDiv = 3f;
                 break;
             case 1:
                 minY = (int) (inst.height * (1f / 3f));
                 maxY = (int) (inst.height * (2f / 3f));
+                chanceDiv = 3f;
                 break;
             case 2:
                 minY = (int) (inst.height * (2f / 3f));
                 maxY = (int) inst.height;
+                chanceDiv = 3f;
+                break;
+            case 3:
+                minY = 0;
+                maxY = (int) (inst.height * 0.5f);
+                chanceDiv = 2f;
                 break;
             default:
                 Plugin.Logger.LogError($"BAD BAND: {band}");
                 return;
         }
 
-        float num = inst.chunkWidth * (inst.chunkHeight / 3f) * perChunk;
-        for (var index = 0; index < num; ++index)
+        float num = inst.chunkWidth * inst.chunkHeight / chanceDiv * perChunk;
+        for (var i = 0; i < num; ++i)
         {
             var pos = new Vector2Int(Random.Range(0, (int)inst.width), Random.Range(minY, maxY));
             FluidManager.main.StartFill(pos, type, maxFill);
@@ -1467,19 +1580,28 @@ public static class NewWorldgen
     {
         float minY;
         float maxY;
+        float chanceDiv;
         switch (band)
         {
             case 0:
                 minY = -inst.height * 0.5f;
                 maxY = -inst.height * (1f / 3f);
+                chanceDiv = 3f;
                 break;
             case 1:
                 minY = -inst.height * (1f / 3f);
                 maxY = inst.height * (1f / 3f);
+                chanceDiv = 3f;
                 break;
             case 2:
                 minY = inst.height * (1f / 3f);
                 maxY = inst.height * 0.5f;
+                chanceDiv = 3f;
+                break;
+            case 3:
+                minY = -inst.height * 0.5f;
+                maxY = 0f;
+                chanceDiv = 2f;
                 break;
             default:
                 Plugin.Logger.LogError($"BAD BAND: {band}");
@@ -1488,14 +1610,14 @@ public static class NewWorldgen
 
         if (dir == Vector2.zero)
             dir = Vector2.down;
-        float num = inst.chunkWidth * inst.chunkHeight / 3f * Random.Range(minPerChunk, maxPerChunk);
+        float num = inst.chunkWidth * inst.chunkHeight / chanceDiv * Random.Range(minPerChunk, maxPerChunk);
         for (var index1 = 0; index1 < (double)num; ++index1)
         {
             var vector2 = new Vector2(Random.Range(-inst.halfWidth, inst.halfWidth), Random.Range(isTrap && band == 0 ? minY + 15f : minY, maxY));
             if (!(bool)(Object)Physics2D.OverlapPoint(vector2, LayerMask.GetMask("Ground")) | spawnInGround)
             {
                 RaycastHit2D raycastHit2D = Physics2D.Raycast(vector2, dir, WorldGeneration.CHUNKSIZE, LayerMask.GetMask("Ground"));
-                if (raycastHit2D && MathF.Abs(raycastHit2D.point.x) < inst.halfWidth - 1.0 && MathF.Abs(raycastHit2D.point.y) < maxY - 1.0 && (checkFunc == null || checkFunc(inst.WorldToBlockPos(raycastHit2D.point - Vector2.up * 0.5f))))
+                if (raycastHit2D && MathF.Abs(raycastHit2D.point.x) < inst.halfWidth - 1.0 && raycastHit2D.point.y > minY + 1.0 && raycastHit2D.point.y < maxY - 1.0 && (checkFunc == null || checkFunc(inst.WorldToBlockPos(raycastHit2D.point - Vector2.up * 0.5f))))
                 {
                     var gameObject = Object.Instantiate(basObj, raycastHit2D.point - dir * Random.Range(spawnYOffset - spawnYOffsetDeviation, spawnYOffset + spawnYOffsetDeviation), Quaternion.Euler(0.0f, 0.0f, basObj.transform.eulerAngles.z + Random.Range(-randomRotation, randomRotation)));
                     if ((bool)(Object)gameObject.GetComponent<BuildingEntity>())

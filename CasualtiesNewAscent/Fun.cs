@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 
-namespace CasualtiesOnOurWayToParadise;
+namespace CasualtiesNewAscent;
 
 [HarmonyPatch(typeof(EndLabScript), nameof(EndLabScript.ScientistCutscene), MethodType.Enumerator)]
 public static class MakeUnchippedEndingAlwaysPossible
