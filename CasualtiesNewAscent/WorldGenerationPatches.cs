@@ -338,8 +338,7 @@ public static class FinishWorldGenerationPatch
         inst.skyMaterial.SetFloat("_RainIntensity", 0.0f);
         inst.crimsonParticle.SetActive(true);
         MusicManager.main.cutsceneVolMult = 1f;
-        if (!MusicPatches.Playing)
-            MusicManager.main.StartCoroutine(MusicManager.main.AscentMusic());
+        MusicManager.main.StartCoroutine(MusicManager.main.AscentMusic());
         if (!Plugin.CheckIfLastLayer(inst.biomeDepth))
         {
             if (ArrowGuideTriple.Child1 == null)

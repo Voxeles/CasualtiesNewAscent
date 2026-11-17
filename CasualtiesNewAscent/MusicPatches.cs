@@ -7,7 +7,7 @@ namespace CasualtiesNewAscent;
 [HarmonyPatch(typeof(MusicManager), nameof(MusicManager.AscentMusic))]
 public static class MusicPatches
 {
-    public static bool Playing;
+    private static AudioSource _source;
 
     public static void Postfix(MusicManager __instance, ref IEnumerator __result)
     {
@@ -21,17 +21,19 @@ public static class MusicPatches
         if (Plugin.MusicIntro == null || Plugin.MusicLoop == null || !WorldGeneration.world)
             yield break;
 
-        Playing = true;
+        if (_source != null)
+            yield break;
+
         inst.source.Stop();
 
-        var source = inst.gameObject.AddComponent<AudioSource>();
-        source.bypassReverbZones = true;
-        source.dopplerLevel = 0.0f;
-        source.spatialBlend = 0.0f;
-        source.loop = false;
-        source.playOnAwake = false;
-        source.volume = 100f;
-        source.clip = Plugin.MusicIntro;
+        _source = inst.gameObject.AddComponent<AudioSource>();
+        _source.bypassReverbZones = true;
+        _source.dopplerLevel = 0.0f;
+        _source.spatialBlend = 0.0f;
+        _source.loop = false;
+        _source.playOnAwake = false;
+        _source.volume = 100f;
+        _source.clip = Plugin.MusicIntro;
 
         while (true)
         {
@@ -42,16 +44,16 @@ public static class MusicPatches
 
             if (!WorldGeneration.world)
             {
-                Object.Destroy(source);
-                Playing = false;
+                Object.Destroy(_source);
+                _source = null;
                 yield break;
             }
         }
 
-        source.PlayDelayed(1f);
+        _source.PlayDelayed(1f);
         while (true)
         {
-            if (source.isPlaying && WorldGeneration.world && Plugin.CheckIfNewLayer(WorldGeneration.world.biomeDepth) && !WorldGeneration.world.cutsceneActive)
+            if (_source.isPlaying && WorldGeneration.world && Plugin.CheckIfNewLayer(WorldGeneration.world.biomeDepth) && !WorldGeneration.world.cutsceneActive)
                 yield return null;
             else
                 break;
@@ -59,14 +61,14 @@ public static class MusicPatches
 
         if (!WorldGeneration.world && !Plugin.CheckIfNewLayer(WorldGeneration.world.biomeDepth) && WorldGeneration.world.cutsceneActive)
         {
-            Object.Destroy(source);
-            Playing = false;
+            Object.Destroy(_source);
+            _source = null;
             yield break;
         }
 
-        source.clip = Plugin.MusicLoop;
-        source.loop = true;
-        source.Play();
+        _source.clip = Plugin.MusicLoop;
+        _source.loop = true;
+        _source.Play();
         while (true)
         {
             if (WorldGeneration.world && Plugin.CheckIfNewLayer(WorldGeneration.world.biomeDepth) && !WorldGeneration.world.cutsceneActive)
@@ -74,8 +76,8 @@ public static class MusicPatches
             else
                 break;
         }
-        Object.Destroy(source);
-        Playing = false;
+        Object.Destroy(_source);
+        _source = null;
     }
 }
 
