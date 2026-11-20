@@ -7,7 +7,7 @@ namespace CasualtiesNewAscent;
 [HarmonyPatch(typeof(MusicManager), nameof(MusicManager.AscentMusic))]
 public static class MusicPatches
 {
-    private static AudioSource _source;
+    internal static AudioSource _source;
 
     public static void Postfix(MusicManager __instance, ref IEnumerator __result)
     {
@@ -53,17 +53,10 @@ public static class MusicPatches
         _source.PlayDelayed(1f);
         while (true)
         {
-            if (_source.isPlaying && WorldGeneration.world && Plugin.CheckIfNewLayer(WorldGeneration.world.biomeDepth) && !WorldGeneration.world.cutsceneActive)
+            if (_source.isPlaying && WorldGeneration.world && Plugin.CheckIfNewLayer(WorldGeneration.world.biomeDepth) && !WorldGeneration.world.cutsceneActive && PlayerCamera.main.body.alive)
                 yield return null;
             else
                 break;
-        }
-
-        if (!WorldGeneration.world && !Plugin.CheckIfNewLayer(WorldGeneration.world.biomeDepth) && WorldGeneration.world.cutsceneActive)
-        {
-            Object.Destroy(_source);
-            _source = null;
-            yield break;
         }
 
         _source.clip = Plugin.MusicLoop;
@@ -71,7 +64,7 @@ public static class MusicPatches
         _source.Play();
         while (true)
         {
-            if (WorldGeneration.world && Plugin.CheckIfNewLayer(WorldGeneration.world.biomeDepth) && !WorldGeneration.world.cutsceneActive)
+            if (WorldGeneration.world && Plugin.CheckIfNewLayer(WorldGeneration.world.biomeDepth) && !WorldGeneration.world.cutsceneActive && PlayerCamera.main.body.alive)
                 yield return null;
             else
                 break;
@@ -91,5 +84,16 @@ public static class DoNotPlayLayerSong
             return true;
         __instance.timeSinceFinishedPlaying = 0f;
         return false;
+    }
+}
+
+[HarmonyPatch(typeof(PauseHandler), nameof(PauseHandler.TogglePause))]
+public static class QuietDownOnPause
+{
+    public static void Postfix(PauseHandler __instance)
+    {
+        if (MusicPatches._source == null)
+            return;
+        MusicPatches._source.volume = PauseHandler.paused ? 0f : 100f;
     }
 }

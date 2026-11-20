@@ -193,10 +193,13 @@ public static class HandleAscentEndLayer
 
     public static void Postfix()
     {
-        if (!Plugin.CheckIfAscent(WorldGeneration.world.biomeDepth))
+        if (!Plugin.CheckIfNewLayer(WorldGeneration.world.biomeDepth))
             return;
 
         var world = WorldGeneration.world;
+        if (world.cutsceneActive)
+            PlayerCamera.main.body.Heal(true);
+
         if (!world.savePanel.activeSelf)
             return;
 
@@ -206,32 +209,27 @@ public static class HandleAscentEndLayer
     }
 }
 
-[HarmonyPatch(typeof(WorldGeneration), nameof(WorldGeneration.SurfaceBreachCutscene))]
-public static class HealPlayerAtEnd
-{
-    public static void Postfix()
-    {
-        PlayerCamera.main.body.Heal(true);
-    }
-}
-
 [HarmonyPatch(typeof(Body), nameof(Body.PlaceBody))]
 public static class HandleAscentPlacePlayer
 {
-    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    public static bool Prefix(Body __instance)
     {
-        return new CodeMatcher(instructions)
-            .MatchForward(false,
-                new CodeMatch(OpCodes.Ldsfld, AccessTools.Field(typeof(WorldGeneration),nameof(WorldGeneration.world))),
-                new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(WorldGeneration),nameof(WorldGeneration.biomeDepth))),
-                new CodeMatch(OpCodes.Ldc_I4_S, (sbyte)10),
-                new CodeMatch(OpCodes.Ceq))
-            .ThrowIfInvalid($"{nameof(HandleAscentPlacePlayer)}.{nameof(Transpiler)} - could not find a match!")
-            .Advance(2)
-            .RemoveInstructions(2)
-            .Insert(
-                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Plugin), nameof(Plugin.CheckIfAscent))))
-            .InstructionEnumeration();
+        if (!Plugin.CheckIfNewLayer(WorldGeneration.world.biomeDepth))
+            return true;
+
+        var offset = new Vector2(WorldGeneration.world.biomeDepth == 14 ? -32f : 0f, 0f);
+
+        for (int index = 0; index < WorldGeneration.world.height; ++index)
+        {
+            if (!Physics2D.OverlapBox(Vector2.down * (WorldGeneration.world.halfHeight - index) + offset, __instance.origColSize, 0.0f, LayerMask.GetMask("Ground")))
+            {
+                __instance.transform.position = Vector2.down * (WorldGeneration.world.halfHeight - index) + offset;
+                PlayerCamera.main.transform.position = __instance.transform.position;
+                break;
+            }
+        }
+
+        return false;
     }
 }
 

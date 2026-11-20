@@ -31,7 +31,7 @@ public class AscentTimer : MonoBehaviour
 
     private void Start()
     {
-        _timeLeft = 12f * 60f;
+        _timeLeft = Plugin.ConfigAscentTimer.Value * 60f;
     }
 
     private void Update()
@@ -43,7 +43,7 @@ public class AscentTimer : MonoBehaviour
             return;
         }
 
-        if (world.generatingWorld || world.instantiatingWorld || world.doingRegen)
+        if (world.generatingWorld || world.instantiatingWorld || world.doingRegen || PauseHandler.paused)
             return;
 
         if (world.cutsceneActive || !Plugin.CheckIfNewLayer(world.biomeDepth))

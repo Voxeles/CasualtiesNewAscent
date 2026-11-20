@@ -732,10 +732,13 @@ public static class NewWorldgen
             }
         }
 
+        float playerY = PlayerCamera.main.body.transform.position.y;
         float num15 = inst.chunkWidth * inst.chunkHeight / 3f * Random.Range(0.24f, 0.3f) * inst.totalTrapRarity;
         for (var index = 0; index < (double)num15; ++index)
         {
-            var vector2 = new Vector2(Random.Range(-inst.halfWidth, inst.halfWidth), Random.Range(-inst.halfHeight + 20f, -inst.halfHeight / 3f));
+            var vector2 = new Vector2(Random.Range(-inst.halfWidth, inst.halfWidth), Random.Range(-inst.halfHeight, -inst.halfHeight / 3f));
+            if (vector2.y <= playerY + 16f)
+                continue;
             if (!(bool)(Object)Physics2D.OverlapPoint(vector2, LayerMask.GetMask("Ground")))
             {
                 float num16 = Random.value > 0.5 ? 1f : -1f;
@@ -1226,10 +1229,13 @@ public static class NewWorldgen
             Object.Instantiate(Resources.Load("oilpipe"), position, Quaternion.Euler(0.0f, 0.0f, Random.value * 360f));
         }
 
+        float playerY = PlayerCamera.main.body.transform.position.y;
         var num6 = (float)((double)(inst.chunkWidth * inst.chunkHeight) / 3f * Random.Range(0.12f, 0.15f) * inst.totalTrapRarity * (inst.biomeDepth == 2 ? 1.0 : 0.6600000262260437));
         for (var index = 0; index < (double)num6; ++index)
         {
-            var vector2 = new Vector2(Random.Range(-inst.halfWidth, inst.halfWidth), Random.Range(-inst.halfHeight + 20f, -inst.halfHeight / 3f));
+            var vector2 = new Vector2(Random.Range(-inst.halfWidth, inst.halfWidth), Random.Range(-inst.halfHeight, -inst.halfHeight / 3f));
+            if (vector2.y <= playerY + 16f)
+                continue;
             if (!(bool)(Object)Physics2D.OverlapPoint(vector2, LayerMask.GetMask("Ground")))
             {
                 float num7 = Random.value > 0.5 ? 1f : -1f;
@@ -1530,7 +1536,7 @@ public static class NewWorldgen
         switch (band)
         {
             case 0:
-                minY = 0;
+                minY = 64;
                 maxY = (int) (inst.height * (1f / 3f));
                 chanceDiv = 3f;
                 break;
@@ -1578,6 +1584,7 @@ public static class NewWorldgen
         Vector2 dir = default(Vector2),
         bool forceFlip = false)
     {
+        float playerY = PlayerCamera.main.body.transform.position.y;
         float minY;
         float maxY;
         float chanceDiv;
@@ -1619,7 +1626,10 @@ public static class NewWorldgen
                 RaycastHit2D raycastHit2D = Physics2D.Raycast(vector2, dir, WorldGeneration.CHUNKSIZE, LayerMask.GetMask("Ground"));
                 if (raycastHit2D && MathF.Abs(raycastHit2D.point.x) < inst.halfWidth - 1.0 && raycastHit2D.point.y > minY + 1.0 && raycastHit2D.point.y < maxY - 1.0 && (checkFunc == null || checkFunc(inst.WorldToBlockPos(raycastHit2D.point - Vector2.up * 0.5f))))
                 {
-                    var gameObject = Object.Instantiate(basObj, raycastHit2D.point - dir * Random.Range(spawnYOffset - spawnYOffsetDeviation, spawnYOffset + spawnYOffsetDeviation), Quaternion.Euler(0.0f, 0.0f, basObj.transform.eulerAngles.z + Random.Range(-randomRotation, randomRotation)));
+                    var pos = raycastHit2D.point - dir * Random.Range(spawnYOffset - spawnYOffsetDeviation, spawnYOffset + spawnYOffsetDeviation);
+                    if (isTrap && pos.y <= playerY + 12f)
+                        continue;
+                    var gameObject = Object.Instantiate(basObj, pos, Quaternion.Euler(0.0f, 0.0f, basObj.transform.eulerAngles.z + Random.Range(-randomRotation, randomRotation)));
                     if ((bool)(Object)gameObject.GetComponent<BuildingEntity>())
                     {
                         gameObject.GetComponent<BuildingEntity>().blockPlacedOn = inst.WorldToBlockPos(raycastHit2D.point + dir * 0.5f);

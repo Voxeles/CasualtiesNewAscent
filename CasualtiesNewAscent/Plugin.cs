@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.IO;
-using System.IO.Compression;
-using System.Threading.Tasks;
 using BepInEx;
+using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
 using UnityEngine;
@@ -21,6 +20,7 @@ public class Plugin : BaseUnityPlugin
 	internal new static ManualLogSource Logger = null!;
 	private readonly Harmony _harmony = new(ModGuid);
 	public static Plugin Instance { get; private set; } = null!;
+	public static ConfigEntry<float> ConfigAscentTimer;
 
 	public static AudioClip MusicIntro;
 	public static AudioClip MusicLoop;
@@ -29,6 +29,8 @@ public class Plugin : BaseUnityPlugin
 	{
 		Logger = base.Logger;
 		Instance = this;
+
+		ConfigAscentTimer = Config.Bind("General", "AscentTimer", 15f, "Sets the ascent timer starting length, in minutes (restart to take effect)");
 
 		StartCoroutine(LoadAudio());
 
